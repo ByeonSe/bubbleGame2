@@ -41,7 +41,7 @@ export default class FgScene extends Phaser.Scene {
 
     this.load.image('gun', 'assets/sprites/gun.png')
 
-    this.load.image('laserBolt', 'assets/sprites/laserBolt.png');
+    this.load.image('laserBolt', 'assets/sprites/heartLaser.png');
 
     //sounds
 
@@ -87,7 +87,7 @@ export default class FgScene extends Phaser.Scene {
     //define the single frame in the tilesheet that represents the player idle and holding a gun 
     this.anims.create({
       key: 'idleArmed',
-      frames: [{key:'serena', frame: 3}],
+      frames: [{key:'serena', frame: 1}],
       frameRate:10,
     });
 
@@ -105,8 +105,8 @@ export default class FgScene extends Phaser.Scene {
 
 
     this.createGround(160, 540);
-    this.createGround(600, 540);
-    this.createGround(400, 1000)
+    this.createGround(650, 540);
+    this.createGround(400, 540);
 
     // Assign the cursors
     this.cursors = this.input.keyboard.createCursorKeys();
@@ -221,7 +221,7 @@ export default class FgScene extends Phaser.Scene {
       laserY,
       'laserBolt',
       this.player.facingLeft
-    ).setScale(0.25);
+    ).setScale(0.05);
       // Add our newly created to the group
       this.lasers.add(laser);
   }
