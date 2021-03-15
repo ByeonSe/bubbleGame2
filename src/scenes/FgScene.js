@@ -6,6 +6,7 @@ import Gun from '../entity/Gun'
 import Laser from '../entity/Laser'
 import Stars from '../entity/Stars'
 import ScoreLabel1 from '../ui/ScoreLabel'
+import BombSpawner from '../entity/BombSpawner'
 
 export default class FgScene extends Phaser.Scene {
   constructor() {
@@ -15,7 +16,7 @@ export default class FgScene extends Phaser.Scene {
     this.collectGun = this.collectGun.bind(this)
     this.fireLaser = this.fireLaser.bind(this);
     this.hit = this.hit.bind(this);
-    this.scoreLabel1 = undefined;
+    //this.scoreLabel1 = undefined;
     this.gameOver = false
   }
 
@@ -48,6 +49,8 @@ export default class FgScene extends Phaser.Scene {
     this.load.image('laserBolt', 'assets/sprites/heartLaser.png');
 
     this.load.image('stars', 'assets/sprites/star.png')
+
+    this.load.image('bomb', 'assets/sprites/bomb.png')
 
     //sounds
 
@@ -122,9 +125,10 @@ export default class FgScene extends Phaser.Scene {
     this.enemy = new Enemy (this, 600, 400, 'enemy').setScale(0.25)
     this.groundGroup = this.physics.add.staticGroup({ classType: Ground });
     this.gun = new Gun (this, 300, 400, 'gun').setScale(0.25)
-    const stars = this.createStars()
+    this.stars = this.createStars()
     this.scoreLabel = this.createScoreLavel(16, 16, 0)
-
+    this.bombSpawner = new BombSpawner (this, 'bomb')
+    const bombsGroup = this.bombSpawner.group
 
     this.createGround(160, 540);
     this.createGround(650, 540);
@@ -177,12 +181,19 @@ export default class FgScene extends Phaser.Scene {
 
     this.physics.add.overlap(
       this.player, 
-      stars, 
+      this.stars, 
       this.collectStar,
       null,
       this
     );
 
+    this.physics.add.overlap(
+      this.player, 
+      this.stars, 
+      this.collectStar, 
+      null, 
+      this
+    );
 
     // Create collisions for all entities
     // << CREATE COLLISIONS HERE >>
@@ -194,7 +205,9 @@ export default class FgScene extends Phaser.Scene {
     this.physics.add.collider(this.enemy, this.groundGroup)
     this.physics.add.collider(this.player, this.enemy);
     this.physics.add.collider(this.gun, this.groundGroup)
-    this.physics.add.collider(stars, this.groundGroup)
+    this.physics.add.collider(this.stars, this.groundGroup)
+    this.physics.add.collider(bombsGroup, this.groundGroup)
+    this.physics.add.collider(this.player, bombsGroup, this.hitBomb, null, this)
     
       //CAMER
     this.myCam = this.cameras.main;
@@ -223,6 +236,15 @@ export default class FgScene extends Phaser.Scene {
   collectStar(player, stars) {
     stars.disableBody(true, true)
     this.scoreLabel.add(10)
+
+    if (this.stars.countActive(true) === 0) {
+			//  A new batch of stars to collect
+			this.stars.children.iterate((child) => {
+				child.enableBody(true, child.x, 0, true, true)
+			})
+		}
+
+		this.bombSpawner.spawn(player.x)
   }
 
   createScoreLavel(x, y, score) {
@@ -243,6 +265,10 @@ export default class FgScene extends Phaser.Scene {
     this.laserSound
     );
     this.enemy.update(this.screamSound)
+
+    if (this.gameOver) {
+      return
+    }
   }
 
 
@@ -279,5 +305,11 @@ export default class FgScene extends Phaser.Scene {
   hit(enemy, laser) {
     laser.setActive(false);
     laser.setVisible(false);
+  }
+
+  hitBomb (player, bomb) {
+    this.physics.pause()
+    player.setTint(0xff0000)
+    this.gameOver = true
   }
 }
