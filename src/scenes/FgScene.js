@@ -18,11 +18,23 @@ export default class FgScene extends Phaser.Scene {
   preload() {
     // Preload Sprites
     // << LOAD SPRITES HERE >>
-    
-    this.load.spritesheet('josh', 'assets/spriteSheets/josh.png', {
-      frameWidth: 340,
-      frameHeight: 460,
+
+    //SPREITES
+    this.load.spritesheet('serena','assets/spriteSheets/serena1.png', {
+      frameWidth: 60,
+      frameHeight: 110,
     });
+
+    this.load.spritesheet('serenaRun', 'assets/spriteSheets/serena-Run.png', {
+      frameWidth: 55,
+      frameHeight: 110,
+    });
+
+    this.load.spritesheet('serenaJump','assets/spriteSheets/serena-jump.png', {
+      frameWidth: 60,
+      frameHeight: 117,
+    });
+
     this.load.image('ground', 'assets/sprites/ground.png');
 
     this.load.image('enemy', 'assets/sprites/brandon.png');
@@ -45,32 +57,37 @@ export default class FgScene extends Phaser.Scene {
   }
 
   // We're assigning this new animation the key 'run', to be used elsewhere.
-  // The animation pills from the josh spritesheet, and uses frames 17 - 20
+  // The animation pills from the serena spritesheet, and uses frames 17 - 20
   // We're setting the framerate to 10, but try experimenting with different values!
   // repeat: -1 indicates that we want the animation to repeat forever (or until we tell it to stop).
   createAnimations() {
 
     this.anims.create({
       key: 'run',
-      frames: this.anims.generateFrameNumbers('josh', { start: 17, end: 20 }),
-      frameRate: 10,
+      frames: this.anims.generateFrameNumbers('serenaRun', { start: 2, end: 3 }),
+      frameRate: 5,
       repeat: -1,
     });
+    //   key: 'run',
+    //   frames: this.anims.generateFrameNumbers('serenaJump', { start: 10, end: 13 }),
+    //   frameRate: 5,
+    //   repeat: -1,
+    // });
     this.anims.create({
       key: 'jump',
-      frames: [{ key: 'josh', frame: 17}],
+      frames: [{ key: 'serenaJump', frame: 7}],
       frameRate:20,
     });
     this.anims.create({
       key: 'idleUnarmed',
-      frames: [{ key: 'josh', frame:11}],
+      frames: [{ key: 'serena', frame:2}],
       frameRate: 10,
     });
 
     //define the single frame in the tilesheet that represents the player idle and holding a gun 
     this.anims.create({
       key: 'idleArmed',
-      frames: [{key:'josh', frame: 6}],
+      frames: [{key:'serena', frame: 3}],
       frameRate:10,
     });
 
@@ -81,7 +98,7 @@ export default class FgScene extends Phaser.Scene {
   create() {
     // Create game entities
     // << CREATE GAME ENTITIES HERE >>
-    this.player = new Player(this, 20, 400, 'josh').setScale(0.25);
+    this.player = new Player(this, 20, 400, 'serena').setScale(1);
     this.enemy = new Enemy (this, 600, 400, 'enemy').setScale(0.25)
     this.groundGroup = this.physics.add.staticGroup({ classType: Ground });
     this.gun = new Gun (this, 300, 400, 'gun').setScale(0.25)
@@ -89,6 +106,7 @@ export default class FgScene extends Phaser.Scene {
 
     this.createGround(160, 540);
     this.createGround(600, 540);
+    this.createGround(400, 1000)
 
     // Assign the cursors
     this.cursors = this.input.keyboard.createCursorKeys();

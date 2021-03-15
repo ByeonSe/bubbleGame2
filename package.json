@@ -1,5 +1,5 @@
 {
-  "name": "PhaserWorkshop",
+  "name": "bubbleGame2",
   "version": "1.0.0",
   "description": "A workshop for getting started with Phaser",
   "main": "src/index.js",
