@@ -4,6 +4,8 @@ import Ground from '../entity/Ground'
 import Enemy from '../entity/Enemy'
 import Gun from '../entity/Gun'
 import Laser from '../entity/Laser'
+import Stars from '../entity/Stars'
+import ScoreLabel1 from '../ui/ScoreLabel'
 
 export default class FgScene extends Phaser.Scene {
   constructor() {
@@ -13,6 +15,8 @@ export default class FgScene extends Phaser.Scene {
     this.collectGun = this.collectGun.bind(this)
     this.fireLaser = this.fireLaser.bind(this);
     this.hit = this.hit.bind(this);
+    this.scoreLabel1 = undefined;
+    this.gameOver = false
   }
 
   preload() {
@@ -43,6 +47,8 @@ export default class FgScene extends Phaser.Scene {
 
     this.load.image('laserBolt', 'assets/sprites/heartLaser.png');
 
+    this.load.image('stars', 'assets/sprites/star.png')
+
     //sounds
 
     this.load.audio('jump', 'assets/audio/jump.wav');
@@ -54,6 +60,20 @@ export default class FgScene extends Phaser.Scene {
     // << LOAD SOUNDS HERE >>
   createGround(x, y) {
     this.groundGroup.create(x, y, 'ground');
+  }
+
+  createStars() {
+        //create Star
+      const stars = this.physics.add.group({
+          key:'stars',
+          repeat: 11,
+          setXY:  { x: 12, y: 0, stepX: 70 }
+      })
+      stars.children.iterate*((child) => {
+        child.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8))
+      })
+      
+      return stars
   }
 
   // We're assigning this new animation the key 'run', to be used elsewhere.
@@ -68,11 +88,7 @@ export default class FgScene extends Phaser.Scene {
       frameRate: 5,
       repeat: -1,
     });
-    //   key: 'run',
-    //   frames: this.anims.generateFrameNumbers('serenaJump', { start: 10, end: 13 }),
-    //   frameRate: 5,
-    //   repeat: -1,
-    // });
+
     this.anims.create({
       key: 'jump',
       frames: [{ key: 'serenaJump', frame: 7}],
@@ -96,12 +112,18 @@ export default class FgScene extends Phaser.Scene {
 
 
   create() {
-    // Create game entities
+    // Create width and heights
+    const width = game.config.width;
+    const height = game.config.height;
+    const totalWidth = width * 20;
+
     // << CREATE GAME ENTITIES HERE >>
     this.player = new Player(this, 20, 400, 'serena').setScale(1);
     this.enemy = new Enemy (this, 600, 400, 'enemy').setScale(0.25)
     this.groundGroup = this.physics.add.staticGroup({ classType: Ground });
     this.gun = new Gun (this, 300, 400, 'gun').setScale(0.25)
+    const stars = this.createStars()
+    this.scoreLabel = this.createScoreLavel(16, 16, 0)
 
 
     this.createGround(160, 540);
@@ -113,11 +135,6 @@ export default class FgScene extends Phaser.Scene {
     //create animation
     this.createAnimations()
 
-    // Create sounds
-    this.jumpSound = this.sound.add('jump');
-    this.laserSound = this.sound.add('laser');
-    this.laserSound.volume = 0.5
-    this.screamSound = this.sound.add('scream')
 
     // We're going to create a group for our lasers
     // We're going to create a group for our lasers
@@ -130,9 +147,8 @@ export default class FgScene extends Phaser.Scene {
       // the individual lasers will also have gravity enabled when they're
       // added to this group
       maxSize: 40
-});
+    });
 
-    
     //whenthe player collieds with the gun
     this.physics.add.overlap(
       this.player,
@@ -157,6 +173,17 @@ export default class FgScene extends Phaser.Scene {
       this
     );
 
+    // when the stars collides with the player
+
+    this.physics.add.overlap(
+      this.player, 
+      stars, 
+      this.collectStar,
+      null,
+      this
+    );
+
+
     // Create collisions for all entities
     // << CREATE COLLISIONS HERE >>
     //With a single call to collider() we've now enabled our 
@@ -167,12 +194,19 @@ export default class FgScene extends Phaser.Scene {
     this.physics.add.collider(this.enemy, this.groundGroup)
     this.physics.add.collider(this.player, this.enemy);
     this.physics.add.collider(this.gun, this.groundGroup)
-
-
+    this.physics.add.collider(stars, this.groundGroup)
+    
+      //CAMER
+    this.myCam = this.cameras.main;
+    this.myCam.setBounds(0, 0, width * 20, height);
+    this.cameras.main.startFollow(this.player);
 
     // Create sounds
     // << CREATE SOUNDS HERE >>
-    
+    this.jumpSound = this.sound.add('jump');
+    this.laserSound = this.sound.add('laser');
+    this.laserSound.volume = 0.5
+    this.screamSound = this.sound.add('scream')
 
    
   }
@@ -186,6 +220,17 @@ export default class FgScene extends Phaser.Scene {
   // time: total time elapsed (ms)
   // delta: time elapsed (ms) since last update() call. 16.666 ms @ 60fps
 
+  collectStar(player, stars) {
+    stars.disableBody(true, true)
+    this.scoreLabel.add(10)
+  }
+
+  createScoreLavel(x, y, score) {
+    const style = { fontSize: '32px', fill: '#000' }
+		const label = new ScoreLabel1(this, x, y, score, style)
+    this.add.existing(label)
+    return label
+  }
   
   update(time, delta) {
     // << DO UPDATE LOGIC HERE >>
